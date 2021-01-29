@@ -1,0 +1,17 @@
+
+ <!-- action usual -->
+ <!-- table sqllogs search -->
+ [#if VIEW_MODE="search_sqllogs" || VIEW_MODE=""#]
+  [#inc sqllogs_search_admin.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table sqllogs search -->
+ <!-- table sqllogs edit -->
+ [#if VIEW_MODE="edit_sqllogs"#]
+   [#inc sqllogs_edit.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table sqllogs edit -->
+ <!-- table sqllogs view --> 
+ [#if VIEW_MODE="view_sqllogs"#]
+   [#inc sqllogs_view.html#]
+ [#endif VIEW_MODE#]
+ <!-- / table sqllogs view -->

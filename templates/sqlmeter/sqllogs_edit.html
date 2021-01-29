@@ -1,0 +1,73 @@
+<div class="row">
+ <div class="col-md-1">
+  <a href="?" class="btn btn-default"><#LANG_BACK#></a>
+ </div>
+ <div class="col-md-6"><h2>[#TITLE#]</h2>
+ </div>
+ <div class="col-md-2">
+  Total queries: <b>[#QUERIES_TOTAL#]</b><br/>
+  Time: <b>[#DIFF#]</b> seconds<br/>
+  Load: <b>[#LOAD#]</b> queries/second
+ </div>
+ <div class="col-md-3 text-right">
+  <a href="?view_mode=<#VIEW_MODE#>&id=[#ID#]&mode=download" class="btn btn-default btn-success">Download Raw</a>
+  <a href="?view_mode=<#VIEW_MODE#>&id=[#ID#]&mode=analyze" class="btn btn-default btn-warning">Analyze</a>
+ </div>
+</div>
+
+&nbsp;
+<form class="form-inline" action="?" method="get">
+ <div class="form-group">
+  <input type="text" name="search" value="[#SEARCH#]" placeholder="Text filter" class="form-control">
+ </div>
+ <div class="form-group">
+  <input type="checkbox" name="types[]" [#if TYPE1!=""#] checked[#endif#] value="1"> SELECT
+  <input type="checkbox" name="types[]" [#if TYPE2!=""#] checked[#endif#] value="2"> UPDATE
+  <input type="checkbox" name="types[]" [#if TYPE3!=""#] checked[#endif#] value="3"> REPLACE
+  <input type="checkbox" name="types[]" [#if TYPE4!=""#] checked[#endif#] value="4"> INSERT
+  <input type="checkbox" name="types[]" [#if TYPE5!=""#] checked[#endif#] value="5"> DELETE
+  <input type="checkbox" name="types[]" [#if TYPE6!=""#] checked[#endif#] value="6"> SET
+  <input type="checkbox" name="types[]" [#if TYPE100!=""#] checked[#endif#] value="100"> Other
+ </div>
+ <div class="form-group">
+  <input type="submit" name="submit" value="Submit" class="btn btn-default btn-primary">
+ </div>
+<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+<input type="hidden" name="id" value="<#ID#>">
+</form>
+
+<script type="text/javascript">
+ function loadMeta(id) {
+  if ($('#meta'+id).is(':visible')) {
+   $('#meta'+id).hide();
+   return;
+  }
+  $('#meta'+id).show();
+  $('#meta'+id).html('<br/>Loading...');
+  var url="?";
+  url+='&view_mode=<#VIEW_MODE#>&id=<#ID#>&meta_id='+id;
+  $.ajax({
+   url: url
+  }).done(function(data) {
+   $('#meta'+id).html(data);
+  });
+  return false;
+ }
+</script>
+
+<table class="table">
+ <thead>
+ <tr>
+  <th>SQL</th>
+  <th>Queries</th>
+  <th>Load</th>
+ </tr>
+ </thead>
+ [#begin METAS#]
+ <tr>
+  <td><a href="#" onclick="return loadMeta([#ID#]);">[#TITLE#]</a><span id="meta[#ID#]" style="display:none"></span></td>
+  <td>[#QUERIES_NUM#]</td>
+  <td nowrap>[#SPEED#] / sec</td>
+ </tr>
+ [#end METAS#]
+</table>
