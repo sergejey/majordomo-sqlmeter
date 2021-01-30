@@ -157,7 +157,7 @@ class sqlmeter extends module
                 SQLInsert('sqllogs',$rec);
 
                 SQLExec("SET global log_output = 'FILE';");
-                SQLExec("SET global general_log_file='".dirname(__FILE__)."/../../cms/sqlmeter/".$filename."';");
+                SQLExec("SET global general_log_file='".str_replace('\\','/',dirname(__FILE__))."/../../cms/sqlmeter/".$filename."';");
                 SQLExec("SET global general_log = 1;");
             }
 

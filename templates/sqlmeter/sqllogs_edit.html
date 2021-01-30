@@ -16,6 +16,12 @@
 </div>
 
 &nbsp;
+
+[#if QUERIES_TOTAL="0"#]
+<div class="alert alert-warning text-center">
+ <b>Click <a href="?view_mode=<#VIEW_MODE#>&id=[#ID#]&mode=analyze">Analyze</a> to process log!</b>
+</div>
+[#else#]
 <form class="form-inline" action="?" method="get">
  <div class="form-group">
   <input type="text" name="search" value="[#SEARCH#]" placeholder="Text filter" class="form-control">
@@ -32,8 +38,8 @@
  <div class="form-group">
   <input type="submit" name="submit" value="Submit" class="btn btn-default btn-primary">
  </div>
-<input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
-<input type="hidden" name="id" value="<#ID#>">
+ <input type="hidden" name="view_mode" value="<#VIEW_MODE#>">
+ <input type="hidden" name="id" value="<#ID#>">
 </form>
 
 <script type="text/javascript">
@@ -55,6 +61,7 @@
  }
 </script>
 
+
 <table class="table">
  <thead>
  <tr>
@@ -71,3 +78,5 @@
  </tr>
  [#end METAS#]
 </table>
+[#endif QUERIES_TOTAL#]
+
