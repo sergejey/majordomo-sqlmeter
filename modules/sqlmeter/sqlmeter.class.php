@@ -127,6 +127,22 @@ class sqlmeter extends module
         }
         if ($this->data_source == 'sqllogs' || $this->data_source == '') {
 
+            if ($this->mode=='upload') {
+                SQLExec("SET global general_log = 0;");
+                global $file;
+                global $file_name;
+                if (is_file($file) && $file_name!='') {
+                    move_uploaded_file($file,ROOT.'cms/sqlmeter/'.$file_name);
+                    $rec=array();
+                    $rec['TITLE']=date('Y-m-d H:i:s');
+                    $rec['TITLE']=$file_name;
+                    $rec['FILENAME']=$file_name;
+                    $rec['STATUS']=1;
+                    $rec['ID']=SQLInsert('sqllogs',$rec);
+                    $this->redirect("?view_mode=edit_sqllogs&id=".$rec['ID']); //."&mode=analyze"
+                }
+            }
+
             if ($this->mode=='start') {
                 if (!is_dir(ROOT.'cms/sqlmeter')) {
                     umask(0);

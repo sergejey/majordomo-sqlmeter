@@ -13,13 +13,23 @@ $total = count($lines);
 $tm = 0;
 $query='';
 $queries = array();
-for($i=0;$i<$total;$i++) {
+$tm_started=0;
+for($i=3;$i<$total;$i++) {
     $line = $lines[$i];
-    if (preg_match('/^(\d+) (\d+\:\d+\:\d+)/',$line,$m)) {
+    if (preg_match('/^(\d+\-\d+\-\d+.+)Z/',$line,$m)) {
+        $tm=strtotime($m[1]);
+    }
+    //dprint($line);
+    if (preg_match('/^(\d+)\s+(\d+\:\d+\:\d+)/',$line,$m)) {
         $dt = '20'.substr($m[1],0,2).'-'.substr($m[1],2,2).'-'.substr($m[1],4,2);
         $tm = strtotime($dt.' '.$m[2]);
     }
     if (!$tm) continue;
+
+    if (!$tm_started) {
+        $tm_started=$tm;
+    }
+    $tm_ended=$tm;
 
     if (preg_match('/\d+ Query\t(.+)/',$line,$m) || preg_match('/\d+ Change user/',$line,$m)) {
         if ($query!='') {
@@ -36,6 +46,12 @@ for($i=0;$i<$total;$i++) {
 }
 
 $rec['QUERIES_TOTAL']=count($queries);
+
+if ($tm_started && $tm_ended) {
+    $rec['STARTED']=date('Y-m-d H:i:s',$tm_started);
+    $rec['FINISHED']=date('Y-m-d H:i:s',$tm_ended);
+}
+
 SQLUpdate('sqllogs',$rec);
 
 SQLExec("DELETE FROM sqlqueries WHERE LOG_ID=".$rec['ID']);
