@@ -43,20 +43,35 @@
 </form>
 
 <script type="text/javascript">
- function loadMeta(id) {
-  if ($('#meta'+id).is(':visible')) {
-   $('#meta'+id).hide();
-   return;
-  }
-  $('#meta'+id).show();
-  $('#meta'+id).html('<br/>Loading...');
+
+ function explainQuery(id) {
   var url="?";
-  url+='&view_mode=<#VIEW_MODE#>&id=<#ID#>&meta_id='+id;
+  url+='&view_mode=<#VIEW_MODE#>&id=<#ID#>&explain_id='+id;
+  parent.$.fancybox.open({ src: url, type: 'iframe',iframe:{preload:false}});
+/*
   $.ajax({
    url: url
   }).done(function(data) {
-   $('#meta'+id).html(data);
+   alert(data);
   });
+  */
+  return false;
+ }
+
+ function loadMeta(id) {
+  if ($('#meta'+id).is(':visible')) {
+   $('#meta'+id).hide();
+  } else {
+   $('#meta'+id).show();
+   $('#meta'+id).html('<br/>Loading...');
+   var url="?";
+   url+='&view_mode=<#VIEW_MODE#>&id=<#ID#>&meta_id='+id;
+   $.ajax({
+    url: url
+   }).done(function(data) {
+    $('#meta'+id).html(data);
+   });
+  }
   return false;
  }
 </script>

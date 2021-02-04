@@ -30,21 +30,41 @@ if ($this->mode=='download') {
     }
 }
 
+$explain_id = gr('explain_id','int');
+if ($explain_id) {
+    $query = SQLSelectOne("SELECT * FROM sqlqueries WHERE ID=".$explain_id);
+    $sql = $query['QUERY'];
+    $tmp = SQLSelect("EXPLAIN ".$sql);
+
+    echo "<b>".htmlspecialchars('EXPLAIN '.$sql)."</b>\n";
+
+    $total = count($tmp);
+    for($i=0;$i<$total;$i++) {
+        echo "<pre>";
+        foreach($tmp[$i] as $k=>$v) {
+            if ($v!='') {
+                echo "$k: $v\n";
+            }
+        }
+        echo "</pre>";
+    }
+    exit;
+}
+
 $meta_id=gr('meta_id');
 if ($meta_id) {
     echo "<br/>";
-    $queries=SQLSelect("SELECT `QUERY`, COUNT(*) as TOTAL FROM sqlqueries WHERE META_ID=".(int)$meta_id." GROUP BY `QUERY` ORDER BY TOTAL DESC");
+    $queries=SQLSelect("SELECT `QUERY`, ID, COUNT(*) as TOTAL FROM sqlqueries WHERE META_ID=".(int)$meta_id." GROUP BY `QUERY` ORDER BY TOTAL DESC");
     $total = count($queries);
     echo '<table class="table">';
     for($i=0;$i<$total;$i++) {
         echo '<tr>';
         echo '<td>'.$queries[$i]['QUERY'].'</td>';
         echo '<td>'.$queries[$i]['TOTAL'].'</td>';
-
+        echo '<td><a href="#" onclick="return explainQuery('.$queries[$i]['ID'].');">Explain</a></td>';
         if ($diff>0) {
             echo '<td nowrap>'.round($queries[$i]['TOTAL']/$diff,1).' / sec</td>';
         }
-
         echo '</tr>';
     }
     echo '</table>';
