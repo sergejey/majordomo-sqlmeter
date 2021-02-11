@@ -2,6 +2,16 @@
 /*
 * @version 0.1 (wizard)
 */
+
+$compare_id = gr('compare_id','int');
+$out['COMPARE_ID']=$compare_id;
+if ($compare_id) {
+    $rec_compared = SQLSelectOne("SELECT * FROM sqllogs WHERE ID='$compare_id'");
+    $tm_start_compared=strtotime($rec_compared['STARTED']);
+    $tm_finish_compared=strtotime($rec_compared['FINISHED']);
+    $diff_compared=$tm_finish_compared-$tm_start_compared;
+}
+
 if ($this->owner->name == 'panel') {
     $out['CONTROLPANEL'] = 1;
 }
@@ -35,9 +45,7 @@ if ($explain_id) {
     $query = SQLSelectOne("SELECT * FROM sqlqueries WHERE ID=".$explain_id);
     $sql = $query['QUERY'];
     $tmp = SQLSelect("EXPLAIN ".$sql);
-
     echo "<b>".htmlspecialchars('EXPLAIN '.$sql)."</b>\n";
-
     $total = count($tmp);
     for($i=0;$i<$total;$i++) {
         echo "<pre>";
@@ -51,9 +59,46 @@ if ($explain_id) {
     exit;
 }
 
-$meta_id=gr('meta_id');
+$run_id = gr('run_id','int');
+if ($run_id) {
+    $query = SQLSelectOne("SELECT * FROM sqlqueries WHERE ID=".$run_id);
+    if (preg_match('/^select/is',$query['QUERY'])) {
+        $sql = $query['QUERY'];
+        $tmp = SQLSelect($sql);
+        if (count($tmp)) {
+            echo '<table border="1" cellpadding="2">';
+
+            echo '<tr>';
+            foreach($tmp[0] as $k=>$v) {
+                echo '<td><b>'.htmlspecialchars($k).'</b></td>';
+            }
+            echo '</tr>';
+
+            $total = count($tmp);
+            for($i=0;$i<$total;$i++) {
+                echo '<tr>';
+                foreach($tmp[$i] as $k=>$v) {
+                    echo '<td>'.htmlspecialchars($v).'</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</table>';
+        } else {
+            echo '<p>No data</p>';
+        }
+    } else {
+        echo "Sorry, run is for SELECT queries only";
+    }
+    exit;
+}
+
+$meta_id=gr('meta_id','int');
 if ($meta_id) {
     echo "<br/>";
+    $meta_query=SQLSelectOne("SELECT * FROM sqlqueries_meta WHERE ID=".$meta_id);
+    if ($compare_id) {
+        $meta_query_compared=SQLSelectOne("SELECT * FROM sqlqueries_meta WHERE LOG_ID=".$compare_id." AND TITLE='".DBSafe($meta_query['TITLE'])."'");
+    }
     $queries=SQLSelect("SELECT `QUERY`, ID, COUNT(*) as TOTAL FROM sqlqueries WHERE META_ID=".(int)$meta_id." GROUP BY `QUERY` ORDER BY TOTAL DESC");
     $total = count($queries);
     echo '<table class="table">';
@@ -62,8 +107,24 @@ if ($meta_id) {
         echo '<td>'.$queries[$i]['QUERY'].'</td>';
         echo '<td>'.$queries[$i]['TOTAL'].'</td>';
         echo '<td><a href="#" onclick="return explainQuery('.$queries[$i]['ID'].');">Explain</a></td>';
+        echo '<td><a href="#" onclick="return runQuery('.$queries[$i]['ID'].');">Run</a></td>';
         if ($diff>0) {
-            echo '<td nowrap>'.round($queries[$i]['TOTAL']/$diff,1).' / sec</td>';
+            $speed = round($queries[$i]['TOTAL']/$diff,1);
+            $speed_text=$speed.' / sec';
+            if ($meta_query_compared['ID'] && $diff_compared) {
+                $query_compared=SQLSelectOne("SELECT `QUERY`, ID, COUNT(*) as TOTAL FROM sqlqueries WHERE META_ID=".(int)$meta_query_compared['ID']." AND `QUERY`='".DBSafe($queries[$i]['QUERY'])."'");
+                if ($query_compared['ID']) {
+                    $speed_compared = round($query_compared['TOTAL']/$diff_compared,1);
+                    if ($speed > $speed_compared) {
+                        $speed_text = '<b style="color:red">'.$speed.'</b> / sec &gt; '.$speed_compared.' / sec';
+                    } elseif ($speed < $speed_compared) {
+                        $speed_text = '<b style="color:green">'.$speed.'</b> / sec &lt; '.$speed_compared.' / sec';
+                    } else {
+                        $speed_text = $speed.' / sec = '.$speed_compared.' / sec';
+                    }
+                }
+            }
+            echo '<td nowrap>'.$speed_text.'</td>';
         }
         echo '</tr>';
     }
@@ -129,7 +190,21 @@ $metas = SQLSelect("SELECT * FROM sqlqueries_meta WHERE LOG_ID=".$rec['ID']." AN
 $total = count($metas);
 for($i=0;$i<$total;$i++) {
     if ($diff>0) {
-        $metas[$i]['SPEED']=round($metas[$i]['QUERIES_NUM']/$diff,1);
+        $speed=round($metas[$i]['QUERIES_NUM']/$diff,1);
+        $metas[$i]['SPEED']=$speed.' / sec';
+        if ($compare_id && $diff_compared) {
+            $meta_compared = SQLSelectOne("SELECT * FROM sqlqueries_meta WHERE LOG_ID=".$compare_id." AND TITLE='".DBSafe($metas[$i]['TITLE'])."'");
+            if ($meta_compared['ID']) {
+                $speed_compared=round($meta_compared['QUERIES_NUM']/$diff_compared,1);
+                if ($speed_compared>$speed) {
+                    $metas[$i]['SPEED']='<b style="color:green">'.$speed.'</b> / sec &lt; '.$speed_compared.' / sec';
+                } elseif ($speed_compared<$speed) {
+                    $metas[$i]['SPEED']='<b style="color:red">'.$speed.'</b> / sec &gt; '.$speed_compared.' / sec';
+                } else {
+                    $metas[$i]['SPEED']=$speed.' / sec = '.$speed_compared.' / sec';
+                }
+            }
+        }
     }
 }
 $out['METAS']=$metas;
@@ -142,3 +217,6 @@ if (is_array($rec)) {
     }
 }
 outHash($rec, $out);
+
+$others = SQLSelect("SELECT ID, TITLE FROM sqllogs WHERE ID!=".(int)$rec['ID']." ORDER BY ID DESC");
+$out['OTHERS']=$others;
