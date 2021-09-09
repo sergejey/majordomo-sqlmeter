@@ -10,6 +10,13 @@
 //
 class sqlmeter extends module
 {
+    var $data_source;
+    var $mode;
+    var $view_mode;
+    var $edit_mode;
+    var $tab;
+    var $ajax;
+    
     /**
      * sqlmeter
      *
