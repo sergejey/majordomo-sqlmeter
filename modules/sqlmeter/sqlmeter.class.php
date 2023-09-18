@@ -10,13 +10,6 @@
 //
 class sqlmeter extends module
 {
-    var $data_source;
-    var $mode;
-    var $view_mode;
-    var $edit_mode;
-    var $tab;
-    var $ajax;
-    
     /**
      * sqlmeter
      *
@@ -139,6 +132,10 @@ class sqlmeter extends module
                 global $file;
                 global $file_name;
                 if (is_file($file) && $file_name!='') {
+                    if (!is_dir(ROOT.'cms/sqlmeter')) {
+                        umask(0);
+                        mkdir(ROOT.'cms/sqlmeter',0777);
+                    }
                     move_uploaded_file($file,ROOT.'cms/sqlmeter/'.$file_name);
                     $rec=array();
                     $rec['TITLE']=date('Y-m-d H:i:s');
